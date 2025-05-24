@@ -1,0 +1,85 @@
+HELP.md
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### Additional Security ###
+*.log
+*.pid
+*.seed
+*.pid.lock
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+### Database ###
+*.db
+
+### Team Collaboration ###
+# Local configuration files
+application-local.properties
+application-dev.properties
+application-*.properties
+
+# Sensitive files
+*.key
+*.pem
+*.p12
+*.jks
+
+# IDE specific files
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*.orig
+
+### Documentation Generated ###
+API_Testing_Guide.md
