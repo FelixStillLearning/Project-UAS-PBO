@@ -1,6 +1,8 @@
 package com.proyek.coffeeshop.service;
 
+import com.proyek.coffeeshop.dto.request.CashierOrderRequestDTO;
 import com.proyek.coffeeshop.dto.request.OrderRequestDto;
+import com.proyek.coffeeshop.dto.response.CashierOrderResponseDTO;
 import com.proyek.coffeeshop.dto.response.OrderResponseDto;
 import com.proyek.coffeeshop.model.enums.OrderStatus;
 import org.springframework.data.domain.Page;
@@ -97,4 +99,13 @@ public interface OrderService {
      * @return OrderResponseDto order yang telah dibatalkan
      */
     OrderResponseDto cancelOrder(Long orderId, String username);
+
+    /**
+     * Membuat order baru melalui kasir (walk-in).
+     *
+     * @param request data order dari kasir
+     * @param cashierUsername username kasir yang memproses order
+     * @return CashierOrderResponseDTO order yang telah dibuat
+     */
+    CashierOrderResponseDTO createCashierOrder(CashierOrderRequestDTO request, String cashierUsername);
 }

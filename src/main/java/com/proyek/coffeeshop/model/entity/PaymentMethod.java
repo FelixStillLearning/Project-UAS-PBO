@@ -25,7 +25,8 @@ public class PaymentMethod {
     @Column(name = "payment_id")
     private Long paymentId;
 
-    @NotBlank(message = "Tipe pembayaran tidak boleh kosong")
+    @NotBlank(message = "Nama metode pembayaran tidak boleh kosong") // Ubah pesan validasi jika perlu
     @Column(unique = true, nullable = false, length = 50)
-    private String type;
+    private String name; // Mengganti 'type' menjadi 'name'    @Column(length = 255) // Tambahkan field description
+    private String description;
 }

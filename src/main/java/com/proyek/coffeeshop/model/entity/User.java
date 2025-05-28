@@ -8,6 +8,9 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.time.LocalDateTime; // Import LocalDateTime
+import org.hibernate.annotations.CreationTimestamp; // Import CreationTimestamp
+import org.hibernate.annotations.UpdateTimestamp; // Import UpdateTimestamp
 
 /**
  * Entitas JPA untuk tabel Users.
@@ -45,6 +48,14 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserRole role;
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 
     /**
      * Relasi one-to-one dengan Customer.

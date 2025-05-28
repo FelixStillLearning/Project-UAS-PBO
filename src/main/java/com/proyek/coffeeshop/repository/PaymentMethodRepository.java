@@ -17,18 +17,18 @@ import java.util.Optional;
 public interface PaymentMethodRepository extends JpaRepository<PaymentMethod, Long> {
 
     /**
-     * Mencari payment method berdasarkan tipe.
+     * Mencari payment method berdasarkan nama.
      *
-     * @param type tipe payment method yang dicari
+     * @param name nama payment method yang dicari
      * @return Optional PaymentMethod jika ditemukan
      */
-    Optional<PaymentMethod> findByType(String type);
+    Optional<PaymentMethod> findByName(String name);
 
     /**
-     * Mengecek apakah tipe payment method sudah ada.
+     * Mengecek apakah nama payment method sudah ada.
      *
-     * @param type tipe payment method yang dicek
-     * @return true jika tipe sudah ada
+     * @param name nama payment method yang dicek
+     * @return true jika nama sudah ada
      */
-    boolean existsByType(String type);
+    boolean existsByName(String name);
 }

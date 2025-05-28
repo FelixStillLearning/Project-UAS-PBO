@@ -1,6 +1,8 @@
 package com.proyek.coffeeshop.controller;
 
+import com.proyek.coffeeshop.dto.request.CashierOrderRequestDTO;
 import com.proyek.coffeeshop.dto.request.OrderRequestDto;
+import com.proyek.coffeeshop.dto.response.CashierOrderResponseDTO;
 import com.proyek.coffeeshop.dto.response.OrderResponseDto;
 import com.proyek.coffeeshop.model.enums.OrderStatus;
 import com.proyek.coffeeshop.service.OrderService;
@@ -52,6 +54,25 @@ public class OrderController {
         log.info("POST /api/orders - Creating order for user: {}", authentication.getName());
         
         OrderResponseDto response = orderService.createOrder(request, authentication.getName());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    /**
+     * Endpoint untuk membuat order melalui kasir (walk-in customers).
+     * Hanya dapat diakses oleh kasir.
+     *
+     * @param request data order dari kasir
+     * @param authentication data autentikasi dari Spring Security
+     * @return ResponseEntity dengan order yang telah dibuat
+     */
+    @PostMapping("/kasir")
+    @PreAuthorize("hasRole('KASIR')")
+    public ResponseEntity<CashierOrderResponseDTO> createCashierOrder(
+            @Valid @RequestBody CashierOrderRequestDTO request,
+            Authentication authentication) {
+        log.info("POST /api/orders/kasir - Creating cashier order by: {}", authentication.getName());
+        
+        CashierOrderResponseDTO response = orderService.createCashierOrder(request, authentication.getName());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

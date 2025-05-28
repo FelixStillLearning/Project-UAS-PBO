@@ -36,6 +36,9 @@ out/
 ### VS Code ###
 .vscode/
 
+### clj-kondo cache ###
+.clj-kondo/
+
 ### Additional Security ###
 *.log
 *.pid

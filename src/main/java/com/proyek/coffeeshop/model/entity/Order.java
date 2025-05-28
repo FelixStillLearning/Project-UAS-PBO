@@ -34,11 +34,19 @@ public class Order {
     /**
      * Relasi many-to-one dengan Customer.
      * Banyak Order bisa dimiliki oleh satu Customer.
+     * Diubah menjadi nullable untuk mengakomodasi walk-in customer.
      */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id", nullable = false)
-    @NotNull(message = "Customer tidak boleh kosong")
+    @JoinColumn(name = "customer_id", nullable = true) // Diubah menjadi nullable = true
     private Customer customer;
+
+    /**
+     * Relasi many-to-one dengan User (Kasir).
+     * Untuk mencatat kasir yang memproses pesanan.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "processed_by_kasir_id", nullable = true)
+    private User processedByKasir;
 
     @NotNull(message = "Tanggal order tidak boleh kosong")
     @Column(name = "order_date", nullable = false)
@@ -72,6 +80,13 @@ public class Order {
 
     @Column(name = "customer_notes", length = 500)
     private String customerNotes;
+
+    // Tambahan untuk pembayaran tunai oleh kasir
+    @Column(name = "amount_tendered", precision = 12, scale = 2)
+    private BigDecimal amountTendered;
+
+    @Column(name = "change_given", precision = 12, scale = 2)
+    private BigDecimal changeGiven;
 
     /**
      * Method untuk menghitung total amount dari semua order details.

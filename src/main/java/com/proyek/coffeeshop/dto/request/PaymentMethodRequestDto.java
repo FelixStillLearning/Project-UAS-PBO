@@ -18,7 +18,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PaymentMethodRequestDto {
 
-    @NotBlank(message = "Tipe pembayaran tidak boleh kosong")
-    @Size(max = 50, message = "Tipe pembayaran maksimal 50 karakter")
-    private String type;
+    @NotBlank(message = "Nama metode pembayaran tidak boleh kosong")
+    @Size(max = 50, message = "Nama metode pembayaran maksimal 50 karakter")
+    private String name; // Diganti dari type
+
+    @Size(max = 255, message = "Deskripsi maksimal 255 karakter")
+    private String description; // Ditambahkan
 }

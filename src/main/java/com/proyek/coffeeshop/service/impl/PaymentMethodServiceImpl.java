@@ -46,14 +46,15 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
     @Override
     @Transactional
     public PaymentMethodDto createPaymentMethod(PaymentMethodDto paymentMethodDto) {
-        log.info("Creating new payment method: {}", paymentMethodDto.getType());
+        log.info("Creating new payment method: name='{}', description='{}'", paymentMethodDto.getName(), paymentMethodDto.getDescription());
 
-        if (paymentMethodRepository.existsByType(paymentMethodDto.getType())) {
-            throw new BadRequestException("Metode pembayaran dengan tipe '" + paymentMethodDto.getType() + "' sudah ada");
+        if (paymentMethodRepository.existsByName(paymentMethodDto.getName())) {
+            throw new BadRequestException("Metode pembayaran dengan nama '" + paymentMethodDto.getName() + "' sudah ada");
         }
 
         PaymentMethod paymentMethod = new PaymentMethod();
-        paymentMethod.setType(paymentMethodDto.getType());
+        paymentMethod.setName(paymentMethodDto.getName());
+        paymentMethod.setDescription(paymentMethodDto.getDescription());
 
         PaymentMethod savedPaymentMethod = paymentMethodRepository.save(paymentMethod);
         log.info("Successfully created payment method with ID: {}", savedPaymentMethod.getPaymentId());
@@ -68,13 +69,14 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
 
         PaymentMethod paymentMethod = getPaymentMethodEntityById(id);
 
-        // Check if new type already exists (excluding current payment method)
-        if (!paymentMethod.getType().equals(paymentMethodDto.getType()) && 
-            paymentMethodRepository.existsByType(paymentMethodDto.getType())) {
-            throw new BadRequestException("Metode pembayaran dengan tipe '" + paymentMethodDto.getType() + "' sudah ada");
+        // Check if new name already exists (excluding current payment method)
+        if (!paymentMethod.getName().equals(paymentMethodDto.getName()) && 
+            paymentMethodRepository.existsByName(paymentMethodDto.getName())) {
+            throw new BadRequestException("Metode pembayaran dengan nama '" + paymentMethodDto.getName() + "' sudah ada");
         }
 
-        paymentMethod.setType(paymentMethodDto.getType());
+        paymentMethod.setName(paymentMethodDto.getName());
+        paymentMethod.setDescription(paymentMethodDto.getDescription());
 
         PaymentMethod updatedPaymentMethod = paymentMethodRepository.save(paymentMethod);
         log.info("Successfully updated payment method with ID: {}", updatedPaymentMethod.getPaymentId());
@@ -104,7 +106,8 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
     private PaymentMethodDto convertToDto(PaymentMethod paymentMethod) {
         return new PaymentMethodDto(
                 paymentMethod.getPaymentId(),
-                paymentMethod.getType()
+                paymentMethod.getName(),
+                paymentMethod.getDescription()
         );
     }
 }

@@ -68,9 +68,9 @@ public class PaymentMethodController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PaymentMethodDto> createPaymentMethod(@Valid @RequestBody PaymentMethodRequestDto request) {
-        log.info("POST /api/payment-methods - Creating payment method: {}", request.getType());
+        log.info("POST /api/payment-methods - Creating payment method: name='{}', description='{}'", request.getName(), request.getDescription());
         
-        PaymentMethodDto paymentMethodDto = new PaymentMethodDto(null, request.getType());
+        PaymentMethodDto paymentMethodDto = new PaymentMethodDto(null, request.getName(), request.getDescription());
         PaymentMethodDto response = paymentMethodService.createPaymentMethod(paymentMethodDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -88,9 +88,9 @@ public class PaymentMethodController {
     public ResponseEntity<PaymentMethodDto> updatePaymentMethod(
             @PathVariable Long id,
             @Valid @RequestBody PaymentMethodRequestDto request) {
-        log.info("PUT /api/payment-methods/{} - Updating payment method", id);
+        log.info("PUT /api/payment-methods/{} - Updating payment method: name='{}', description='{}'", id, request.getName(), request.getDescription());
         
-        PaymentMethodDto paymentMethodDto = new PaymentMethodDto(id, request.getType());
+        PaymentMethodDto paymentMethodDto = new PaymentMethodDto(id, request.getName(), request.getDescription());
         PaymentMethodDto response = paymentMethodService.updatePaymentMethod(id, paymentMethodDto);
         return ResponseEntity.ok(response);
     }

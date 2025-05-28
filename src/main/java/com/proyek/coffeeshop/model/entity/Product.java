@@ -52,4 +52,7 @@ public class Product {
     @JoinColumn(name = "category_id", nullable = false)
     @NotNull(message = "Kategori tidak boleh kosong")
     private Category category;
+
+    @Column(nullable = false) // Tambahkan field available
+    private boolean available = true; // Default value true
 }

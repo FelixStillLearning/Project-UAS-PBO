@@ -31,6 +31,9 @@ public class Category {
     @Column(unique = true, nullable = false, length = 50)
     private String name;
 
+    @Column(length = 255) // Tambahkan field description
+    private String description;
+
     /**
      * Relasi one-to-many dengan Product.
      * Satu Category bisa memiliki banyak Product.

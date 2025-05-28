@@ -17,5 +17,6 @@ import lombok.NoArgsConstructor;
 public class PaymentMethodDto {
 
     private Long paymentId;
-    private String type;
+    private String name; // Changed from type to name
+    private String description; // Added description field
 }

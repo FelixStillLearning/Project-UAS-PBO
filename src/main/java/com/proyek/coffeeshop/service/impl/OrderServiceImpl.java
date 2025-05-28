@@ -1,5 +1,7 @@
 package com.proyek.coffeeshop.service.impl;
 
+import com.proyek.coffeeshop.dto.request.CashierOrderItemRequestDTO;
+import com.proyek.coffeeshop.dto.request.CashierOrderRequestDTO;
 import com.proyek.coffeeshop.dto.request.OrderDetailCustomizationRequestDto;
 import com.proyek.coffeeshop.dto.request.OrderDetailRequestDto;
 import com.proyek.coffeeshop.dto.request.OrderRequestDto;
@@ -202,6 +204,187 @@ public class OrderServiceImpl implements OrderService {
         return convertToOrderResponseDto(updatedOrder);
     }
 
+    @Override
+    @Transactional
+    public CashierOrderResponseDTO createCashierOrder(CashierOrderRequestDTO request, String cashierUsername) {
+        log.info("Creating new cashier order by cashier: {}", cashierUsername);
+
+        // 1. Get Kasir (User)
+        User kasir = userRepository.findByUsername(cashierUsername)
+                .orElseThrow(() -> new ResourceNotFoundException("Kasir tidak ditemukan: " + cashierUsername));
+
+        if (kasir.getRole() != UserRole.ROLE_KASIR) {
+            throw new BadRequestException("User yang memproses bukan kasir.");
+        }
+
+        // 2. Get Payment Method
+        PaymentMethod paymentMethod = paymentMethodRepository.findByName(request.getPaymentMethodName())
+                 .orElseThrow(() -> new ResourceNotFoundException("Metode pembayaran tidak ditemukan: " + request.getPaymentMethodName()));
+
+        // 3. Create Order
+        Order order = new Order();
+        order.setProcessedByKasir(kasir); // Set kasir yang memproses
+        order.setOrderDate(LocalDateTime.now());
+        order.setPaymentMethod(paymentMethod);
+        order.setStatus(OrderStatus.PAID); // Langsung PAID untuk walk-in, bisa disesuaikan jika perlu
+        order.setCustomerNotes(request.getCustomerNotes());
+        order.setAmountTendered(request.getAmountTendered());
+
+        Order savedOrder = orderRepository.save(order);
+
+        // 4. Create Order Details
+        List<OrderDetail> orderDetails = new ArrayList<>();
+        BigDecimal totalAmount = BigDecimal.ZERO;
+
+        for (CashierOrderItemRequestDTO itemRequest : request.getOrderItems()) {
+            Product product = productRepository.findById(itemRequest.getProductId())
+                .orElseThrow(() -> new ResourceNotFoundException("Produk tidak ditemukan dengan ID: " + itemRequest.getProductId()));
+
+            if (!product.isAvailable()) { // FIX: Changed from getAvailable() to isAvailable()
+                throw new BadRequestException("Produk " + product.getName() + " sedang tidak tersedia.");
+            }
+
+            OrderDetail orderDetail = new OrderDetail();
+            orderDetail.setOrder(savedOrder);
+            orderDetail.setProduct(product);
+            orderDetail.setQuantity(itemRequest.getQuantity());
+            orderDetail.setUnitPrice(product.getPrice());
+
+            OrderDetail savedOrderDetail = orderDetailRepository.save(orderDetail);
+
+            List<OrderDetailCustomization> customizations = new ArrayList<>();
+            BigDecimal customizationTotalForThisItem = BigDecimal.ZERO;
+
+            if (itemRequest.getCustomizationIds() != null && !itemRequest.getCustomizationIds().isEmpty()) {
+                for (Long customizationId : itemRequest.getCustomizationIds()) {
+                    Customization customization = customizationRepository.findById(customizationId)
+                            .orElseThrow(() -> new ResourceNotFoundException("Kustomisasi tidak ditemukan dengan ID: " + customizationId));
+
+                    OrderDetailCustomization orderDetailCustomization = new OrderDetailCustomization();
+                    orderDetailCustomization.setOrderDetail(savedOrderDetail);
+                    orderDetailCustomization.setCustomization(customization);
+                    orderDetailCustomization.setCustomizationNameSnapshot(customization.getName());
+                    orderDetailCustomization.setPriceAdjustmentSnapshot(customization.getPriceAdjustment());
+
+                    customizations.add(orderDetailCustomizationRepository.save(orderDetailCustomization));
+                    customizationTotalForThisItem = customizationTotalForThisItem.add(customization.getPriceAdjustment());
+                }
+            }
+            savedOrderDetail.setCustomizations(customizations);
+
+            BigDecimal basePrice = product.getPrice().multiply(BigDecimal.valueOf(itemRequest.getQuantity()));
+            BigDecimal totalCustomizationPriceForThisItem = customizationTotalForThisItem.multiply(BigDecimal.valueOf(itemRequest.getQuantity()));
+            BigDecimal subtotal = basePrice.add(totalCustomizationPriceForThisItem);
+            savedOrderDetail.setSubtotalPrice(subtotal);
+
+            orderDetails.add(orderDetailRepository.save(savedOrderDetail));
+            totalAmount = totalAmount.add(subtotal);
+        }
+
+        // 5. Update Total Amount dan Change Given
+        savedOrder.setTotalAmount(totalAmount);
+        if (request.getAmountTendered() != null) {
+            BigDecimal changeGiven = request.getAmountTendered().subtract(totalAmount);
+            if (changeGiven.compareTo(BigDecimal.ZERO) < 0) {
+                throw new BadRequestException("Jumlah uang yang dibayarkan (amountTendered) kurang dari total belanja.");
+            }
+            savedOrder.setChangeGiven(changeGiven);
+        } else if (paymentMethod.getName().equalsIgnoreCase("Tunai") || paymentMethod.getName().equalsIgnoreCase("Cash")) {
+            // Jika metode pembayaran tunai tapi amountTendered null atau tidak cukup.
+            // Anda bisa memutuskan apakah ini error atau kasir harus input manual.
+            // Untuk sekarang, kita anggap error jika amountTendered null untuk tunai.
+            throw new BadRequestException("Untuk pembayaran tunai, jumlah uang yang dibayarkan (amountTendered) harus diisi dan mencukupi.");
+        }
+        // Jika bukan tunai dan amountTendered null, changeGiven akan null (default), yang mungkin oke.
+
+        savedOrder.setOrderDetails(orderDetails);
+        Order finalOrder = orderRepository.save(savedOrder);
+
+        log.info("Successfully created cashier order with ID: {}", finalOrder.getOrderId());
+        return convertToCashierOrderResponseDto(finalOrder);
+    }
+
+    /**
+     * Convert Order entity to CashierOrderResponseDto.
+     */
+    private CashierOrderResponseDTO convertToCashierOrderResponseDto(Order order) {
+        List<OrderItemResponseDTO> orderItemResponseDTOS = new ArrayList<>();
+        if (order.getOrderDetails() != null) {
+            orderItemResponseDTOS = order.getOrderDetails().stream()
+                    .map(this::convertToOrderItemResponseDto)
+                    .collect(Collectors.toList());
+        }
+
+        String kasirUsername = null;
+        User processedByKasir = order.getProcessedByKasir();
+        if (processedByKasir != null) {
+            kasirUsername = processedByKasir.getUsername(); 
+            
+            if (kasirUsername == null) { 
+                 User kasirUserFromRepo = userRepository.findById(processedByKasir.getUserId()).orElse(null); // FIX: Changed from getId() to getUserId()
+                 if (kasirUserFromRepo != null) {
+                     kasirUsername = kasirUserFromRepo.getUsername();
+                 }
+            }
+        }
+
+
+        return new CashierOrderResponseDTO(
+                order.getOrderId(),
+                order.getOrderDate(),
+                kasirUsername, // Menggunakan kasirUsername yang sudah dicek
+                orderItemResponseDTOS,
+                order.getTotalAmount(),
+                order.getPaymentMethod().getName(),
+                order.getStatus(),
+                order.getAmountTendered(),
+                order.getChangeGiven(),
+                order.getCustomerNotes()
+        );
+    }
+
+    /**
+     * Convert OrderDetail entity to OrderItemResponseDTO.
+     */
+    private OrderItemResponseDTO convertToOrderItemResponseDto(OrderDetail orderDetail) {
+        CategoryDto categoryDto = null;
+        if (orderDetail.getProduct() != null && orderDetail.getProduct().getCategory() != null) {
+            categoryDto = new CategoryDto(
+                    orderDetail.getProduct().getCategory().getCategoryId(),
+                    orderDetail.getProduct().getCategory().getName()
+            );
+        }
+
+        ProductDto productDto = null;
+        if (orderDetail.getProduct() != null) {
+            productDto = new ProductDto(
+                    orderDetail.getProduct().getProductId(),
+                    orderDetail.getProduct().getName(),
+                    orderDetail.getProduct().getDescription(),
+                    orderDetail.getProduct().getPrice(),
+                    orderDetail.getProduct().getImageUrl(),
+                    categoryDto
+            );
+        }
+
+        List<OrderDetailCustomizationResponseDto> customizationsDto = new ArrayList<>();
+        if (orderDetail.getCustomizations() != null) {
+            customizationsDto = orderDetail.getCustomizations().stream()
+                    .map(this::convertToOrderDetailCustomizationResponseDto)
+                    .collect(Collectors.toList());
+        }
+
+        // Use productDto and other fields to construct the response DTO
+        return OrderItemResponseDTO.builder()
+                .detailId(orderDetail.getDetailId())
+                .product(productDto)
+                .quantity(orderDetail.getQuantity())
+                .unitPrice(orderDetail.getUnitPrice())
+                .subtotalPrice(orderDetail.getSubtotalPrice())
+                .customizations(customizationsDto)
+                .build();
+    }
+
     /**
      * Create order detail dengan customizations.
      */
@@ -281,16 +464,18 @@ public class OrderServiceImpl implements OrderService {
      * Convert Order entity to OrderResponseDto.
      */
     private OrderResponseDto convertToOrderResponseDto(Order order) {
-        CustomerDto customerDto = new CustomerDto(
-                order.getCustomer().getCustomerId(),
-                order.getCustomer().getFullName(),
-                order.getCustomer().getPhoneNumber(),
-                order.getCustomer().getAddress()
-        );
-
-        PaymentMethodDto paymentMethodDto = new PaymentMethodDto(
+        CustomerDto customerDto = null; // Initialize as null
+        if (order.getCustomer() != null) { // Check if customer exists
+            customerDto = new CustomerDto(
+                    order.getCustomer().getCustomerId(),
+                    order.getCustomer().getFullName(),
+                    order.getCustomer().getPhoneNumber(),
+                    order.getCustomer().getAddress()
+            );
+        }        PaymentMethodDto paymentMethodDto = new PaymentMethodDto(
                 order.getPaymentMethod().getPaymentId(),
-                order.getPaymentMethod().getType()
+                order.getPaymentMethod().getName(),
+                order.getPaymentMethod().getDescription() // Changed from getType() to getDescription()
         );
 
         List<OrderDetailResponseDto> orderDetailsDto = new ArrayList<>();

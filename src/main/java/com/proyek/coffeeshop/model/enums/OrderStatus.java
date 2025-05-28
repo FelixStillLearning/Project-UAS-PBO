@@ -11,5 +11,9 @@ public enum OrderStatus {
     PROCESSING,
     READY_FOR_PICKUP,
     COMPLETED,
-    CANCELLED
+    CANCELLED,
+    // Tambahan untuk Kasir
+    PAID, // Pembayaran telah diterima (bisa menggantikan WAITING_PAYMENT jika alur kasir langsung bayar)
+    PREPARING, // Pesanan sedang disiapkan (mirip PROCESSING, tapi bisa lebih spesifik untuk alur kasir)
+    READY_TO_SERVE // Pesanan siap disajikan/diambil (untuk kasus di tempat oleh kasir)
 }

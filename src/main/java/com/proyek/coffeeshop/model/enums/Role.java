@@ -6,9 +6,8 @@ package com.proyek.coffeeshop.model.enums;
  * @author Coffee Shop Team
  * @version 1.0
  */
-public enum UserRole {
-    ROLE_ADMIN,
-    ROLE_CUSTOMER,
-    ROLE_USER, // Menyamakan dengan Role.java
-    ROLE_KASIR // Menambahkan ROLE_KASIR
+public enum Role {
+    ROLE_USER, // Role untuk customer biasa
+    ROLE_ADMIN, // Role untuk administrator sistem
+    ROLE_KASIR // Role untuk kasir
 }

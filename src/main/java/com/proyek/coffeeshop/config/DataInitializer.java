@@ -25,7 +25,6 @@ import java.time.LocalDateTime;
 public class DataInitializer implements CommandLineRunner {
 
     private final UserRepository userRepository;
-    private final CustomerRepository customerRepository;
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
     private final PaymentMethodRepository paymentMethodRepository;
@@ -38,6 +37,7 @@ public class DataInitializer implements CommandLineRunner {
             log.info("Initializing application data...");
             
             createAdminUser();
+            createKasirUser(); // Panggil method untuk membuat user kasir
             createCategories();
             createPaymentMethods();
             createCustomizations();
@@ -59,6 +59,20 @@ public class DataInitializer implements CommandLineRunner {
         userRepository.save(adminUser);
         
         log.info("Admin user created: username=admin, password=admin123");
+    }
+
+    private void createKasirUser() {
+        // Create kasir user
+        User kasirUser = new User();
+        kasirUser.setUsername("kasir01");
+        kasirUser.setEmail("kasir01@coffeeshop.com");
+        kasirUser.setPassword(passwordEncoder.encode("kasir123"));
+        kasirUser.setRole(UserRole.ROLE_KASIR);
+        kasirUser.setCreatedAt(LocalDateTime.now());
+        kasirUser.setUpdatedAt(LocalDateTime.now());
+        userRepository.save(kasirUser);
+        
+        log.info("Kasir user created: username=kasir01, password=kasir123");
     }
 
     private void createCategories() {
