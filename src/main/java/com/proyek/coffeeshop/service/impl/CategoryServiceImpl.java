@@ -26,17 +26,15 @@ import java.util.stream.Collectors;
 @Slf4j
 public class CategoryServiceImpl implements CategoryService {
 
-    private final CategoryRepository categoryRepository;
-
-    @Override
+    private final CategoryRepository categoryRepository;    @Override
+    @Transactional(readOnly = true)
     public List<CategoryDto> getAllCategories() {
         log.info("Getting all categories");
         return categoryRepository.findAll().stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
-    }
-
-    @Override
+    }    @Override
+    @Transactional(readOnly = true)
     public CategoryDto getCategoryById(Long id) {
         log.info("Getting category by ID: {}", id);
         Category category = getCategoryEntityById(id);
@@ -94,9 +92,8 @@ public class CategoryServiceImpl implements CategoryService {
         
         categoryRepository.delete(category);
         log.info("Successfully deleted category with ID: {}", id);
-    }
-
-    @Override
+    }    @Override
+    @Transactional(readOnly = true)
     public Category getCategoryEntityById(Long id) {
         return categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Kategori tidak ditemukan dengan ID: " + id));

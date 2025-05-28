@@ -33,31 +33,27 @@ import java.util.stream.Collectors;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
-    private final CategoryService categoryService;
-
-    @Override
+    private final CategoryService categoryService;    @Override
+    @Transactional(readOnly = true)
     public Page<ProductDto> getAllProducts(Pageable pageable) {
         log.info("Getting all products with pagination");
         return productRepository.findAll(pageable)
                 .map(this::convertToDto);
-    }
-
-    @Override
+    }    @Override
+    @Transactional(readOnly = true)
     public List<ProductDto> getAllProducts() {
         log.info("Getting all products");
         return productRepository.findAll().stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
-    }
-
-    @Override
+    }    @Override
+    @Transactional(readOnly = true)
     public ProductDto getProductById(Long id) {
         log.info("Getting product by ID: {}", id);
         Product product = getProductEntityById(id);
         return convertToDto(product);
-    }
-
-    @Override
+    }    @Override
+    @Transactional(readOnly = true)
     public List<ProductDto> getProductsByCategory(Long categoryId) {
         log.info("Getting products by category ID: {}", categoryId);
         
@@ -65,17 +61,15 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.findByCategory(category).stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
-    }
-
-    @Override
+    }    @Override
+    @Transactional(readOnly = true)
     public List<ProductDto> searchProductsByName(String name) {
         log.info("Searching products by name: {}", name);
         return productRepository.findByNameContainingIgnoreCase(name).stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
-    }
-
-    @Override
+    }    @Override
+    @Transactional(readOnly = true)
     public List<ProductDto> getProductsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice) {
         log.info("Getting products by price range: {} - {}", minPrice, maxPrice);
         
@@ -147,9 +141,8 @@ public class ProductServiceImpl implements ProductService {
         Product product = getProductEntityById(id);
         productRepository.delete(product);
         log.info("Successfully deleted product with ID: {}", id);
-    }
-
-    @Override
+    }    @Override
+    @Transactional(readOnly = true)
     public Product getProductEntityById(Long id) {
         return productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Produk tidak ditemukan dengan ID: " + id));

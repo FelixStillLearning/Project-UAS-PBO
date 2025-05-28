@@ -9,6 +9,5 @@ package com.proyek.coffeeshop.model.enums;
 public enum UserRole {
     ROLE_ADMIN,
     ROLE_CUSTOMER,
-    ROLE_USER, // Menyamakan dengan Role.java
     ROLE_KASIR // Menambahkan ROLE_KASIR
 }

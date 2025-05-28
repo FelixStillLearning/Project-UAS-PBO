@@ -40,10 +40,10 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(authz -> authz
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))            .authorizeHttpRequests(authz -> authz
                 // Public endpoints
                 .requestMatchers("/auth/**").permitAll()
+                .requestMatchers("/actuator/health").permitAll()
                 .requestMatchers(HttpMethod.GET, "/products/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/categories/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/customizations/**").permitAll()
@@ -52,8 +52,13 @@ public class SecurityConfig {
                 // Customer endpoints
                 .requestMatchers("/orders/**").hasRole("CUSTOMER")
                 
+                // Kasir endpoints
+                .requestMatchers("/kasir/**").hasRole("KASIR")
+                .requestMatchers("/stock/**").hasAnyRole("ADMIN", "KASIR")
+                
                 // Admin endpoints
                 .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/reports/**").hasRole("ADMIN")
                 
                 // All other requests require authentication
                 .anyRequest().authenticated()            )
