@@ -150,14 +150,13 @@ class OrderServiceImplCashierTest {
         assertEquals(new BigDecimal("50000"), result.getAmountTendered());
         assertEquals(new BigDecimal("10000"), result.getChangeGiven());
         assertEquals("Walk-in customer order", result.getCustomerNotes());
-        
-        // Verify interactions
+          // Verify interactions
         verify(userRepository).findByUsername("kasir001");
         verify(paymentMethodRepository).findByName("Cash");
         verify(productRepository).findById(1L);
         verify(customizationRepository).findById(1L);
         verify(orderRepository, times(2)).save(any(Order.class));
-        verify(orderDetailRepository).save(any(OrderDetail.class));
+        verify(orderDetailRepository, times(1)).save(any(OrderDetail.class)); // Fixed: now only saves once
         verify(orderDetailCustomizationRepository).save(any(OrderDetailCustomization.class));
     }
 

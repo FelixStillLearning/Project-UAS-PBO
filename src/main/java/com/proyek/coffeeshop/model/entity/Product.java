@@ -47,12 +47,61 @@ public class Product {
     /**
      * Relasi many-to-one dengan Category.
      * Banyak Product bisa memiliki satu Category.
-     */
-    @ManyToOne(fetch = FetchType.LAZY)
+     */    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     @NotNull(message = "Kategori tidak boleh kosong")
     private Category category;
 
-    @Column(nullable = false) // Tambahkan field available
+    @Column(nullable = false)
     private boolean available = true; // Default value true
+
+    /**
+     * Stock management fields
+     */
+    @Column(name = "stock_quantity", nullable = false)
+    private Integer stockQuantity = 0; // Current stock quantity
+
+    @Column(name = "min_stock_level", nullable = false)
+    private Integer minStockLevel = 5; // Minimum stock threshold
+
+    @Column(name = "max_stock_level", nullable = false)
+    private Integer maxStockLevel = 100; // Maximum stock capacity
+
+    /**
+     * Helper method to check if stock is low
+     */
+    public boolean isLowStock() {
+        return stockQuantity <= minStockLevel;
+    }
+
+    /**
+     * Helper method to check if product is in stock
+     */
+    public boolean isInStock() {
+        return available && stockQuantity > 0;
+    }
+
+    /**
+     * Method to reduce stock when order is placed
+     */
+    public void reduceStock(int quantity) {
+        if (stockQuantity >= quantity) {
+            stockQuantity -= quantity;
+            if (stockQuantity <= 0) {
+                available = false;
+            }
+        } else {
+            throw new IllegalArgumentException("Insufficient stock. Available: " + stockQuantity + ", Required: " + quantity);
+        }
+    }
+
+    /**
+     * Method to add stock
+     */
+    public void addStock(int quantity) {
+        stockQuantity += quantity;
+        if (stockQuantity > 0) {
+            available = true;
+        }
+    }
 }

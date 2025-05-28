@@ -58,7 +58,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByNameContainingIgnoreCase(@Param("name") String name);
 
     /**
-         /**
      * Mencari produk berdasarkan range harga.
      *
      * @param minPrice harga minimum
@@ -84,4 +83,20 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
      * @return true jika produk dengan nama tersebut sudah ada
      */
     boolean existsByName(String name);
+
+    /**
+     * Mencari produk dengan stock yang kurang dari minimum stock level.
+     *
+     * @return List Product dengan stock rendah
+     */
+    @Query("SELECT p FROM Product p WHERE p.stockQuantity < p.minStockLevel")
+    List<Product> findByStockQuantityLessThanMinStockLevel();
+
+    /**
+     * Mencari produk berdasarkan availability.
+     *
+     * @param available status availability yang dicari
+     * @return List Product dengan status available tertentu
+     */
+    List<Product> findByAvailable(Boolean available);
 }

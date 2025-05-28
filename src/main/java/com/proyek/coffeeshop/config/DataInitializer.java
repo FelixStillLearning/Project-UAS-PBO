@@ -150,54 +150,53 @@ public class DataInitializer implements CommandLineRunner {
         Category tea = categoryRepository.findByName("Tea").orElse(null);
         Category pastry = categoryRepository.findByName("Pastry").orElse(null);
         Category snacks = categoryRepository.findByName("Snacks").orElse(null);
-        Category coldDrinks = categoryRepository.findByName("Cold Drinks").orElse(null);
-
-        if (coffee != null) {
-            createProduct("Espresso", "Strong black coffee", new BigDecimal("25000"), coffee);
-            createProduct("Americano", "Espresso with hot water", new BigDecimal("28000"), coffee);
-            createProduct("Cappuccino", "Espresso with steamed milk and foam", new BigDecimal("35000"), coffee);
-            createProduct("Latte", "Espresso with steamed milk", new BigDecimal("38000"), coffee);
-            createProduct("Macchiato", "Espresso with a spot of steamed milk", new BigDecimal("40000"), coffee);
-            createProduct("Mocha", "Espresso with chocolate and steamed milk", new BigDecimal("42000"), coffee);
+        Category coldDrinks = categoryRepository.findByName("Cold Drinks").orElse(null);        if (coffee != null) {
+            createProduct("Espresso", "Strong black coffee", new BigDecimal("25000"), coffee, 60, 15, 120);
+            createProduct("Americano", "Espresso with hot water", new BigDecimal("28000"), coffee, 55, 12, 100);
+            createProduct("Cappuccino", "Espresso with steamed milk and foam", new BigDecimal("35000"), coffee, 45, 10, 90);
+            createProduct("Latte", "Espresso with steamed milk", new BigDecimal("38000"), coffee, 50, 12, 100);
+            createProduct("Macchiato", "Espresso with a spot of steamed milk", new BigDecimal("40000"), coffee, 35, 8, 80);
+            createProduct("Mocha", "Espresso with chocolate and steamed milk", new BigDecimal("42000"), coffee, 40, 10, 85);
         }
 
         if (tea != null) {
-            createProduct("Earl Grey", "Classic black tea with bergamot", new BigDecimal("20000"), tea);
-            createProduct("Green Tea", "Fresh green tea", new BigDecimal("18000"), tea);
-            createProduct("Chamomile Tea", "Relaxing herbal tea", new BigDecimal("22000"), tea);
-            createProduct("Jasmine Tea", "Fragrant jasmine tea", new BigDecimal("25000"), tea);
+            createProduct("Earl Grey", "Classic black tea with bergamot", new BigDecimal("20000"), tea, 30, 8, 60);
+            createProduct("Green Tea", "Fresh green tea", new BigDecimal("18000"), tea, 35, 10, 70);
+            createProduct("Chamomile Tea", "Relaxing herbal tea", new BigDecimal("22000"), tea, 25, 6, 50);
+            createProduct("Jasmine Tea", "Fragrant jasmine tea", new BigDecimal("25000"), tea, 28, 7, 55);
         }
 
         if (pastry != null) {
-            createProduct("Croissant", "Buttery French pastry", new BigDecimal("15000"), pastry);
-            createProduct("Muffin", "Blueberry muffin", new BigDecimal("18000"), pastry);
-            createProduct("Danish", "Sweet pastry with fruit", new BigDecimal("20000"), pastry);
-            createProduct("Scone", "Traditional British pastry", new BigDecimal("16000"), pastry);
+            createProduct("Croissant", "Buttery French pastry", new BigDecimal("15000"), pastry, 20, 5, 40);
+            createProduct("Muffin", "Blueberry muffin", new BigDecimal("18000"), pastry, 25, 6, 50);
+            createProduct("Danish", "Sweet pastry with fruit", new BigDecimal("20000"), pastry, 18, 4, 35);
+            createProduct("Scone", "Traditional British pastry", new BigDecimal("16000"), pastry, 22, 5, 45);
         }
 
         if (snacks != null) {
-            createProduct("Sandwich", "Grilled chicken sandwich", new BigDecimal("35000"), snacks);
-            createProduct("Salad", "Fresh garden salad", new BigDecimal("28000"), snacks);
-            createProduct("Cookies", "Chocolate chip cookies", new BigDecimal("12000"), snacks);
-        }
-
-        if (coldDrinks != null) {
-            createProduct("Iced Coffee", "Cold brew coffee", new BigDecimal("30000"), coldDrinks);
-            createProduct("Smoothie", "Mixed fruit smoothie", new BigDecimal("32000"), coldDrinks);
-            createProduct("Iced Tea", "Refreshing iced tea", new BigDecimal("18000"), coldDrinks);
-            createProduct("Milkshake", "Vanilla milkshake", new BigDecimal("35000"), coldDrinks);
-        }
-
-        log.info("Products created");
+            createProduct("Sandwich", "Grilled chicken sandwich", new BigDecimal("35000"), snacks, 15, 3, 30);
+            createProduct("Salad", "Fresh garden salad", new BigDecimal("28000"), snacks, 12, 3, 25);
+            createProduct("Cookies", "Chocolate chip cookies", new BigDecimal("12000"), snacks, 40, 10, 80);
+        }        if (coldDrinks != null) {
+            createProduct("Iced Coffee", "Cold brew coffee", new BigDecimal("30000"), coldDrinks, 35, 8, 70);
+            createProduct("Smoothie", "Mixed fruit smoothie", new BigDecimal("32000"), coldDrinks, 20, 5, 40);
+            createProduct("Iced Tea", "Refreshing iced tea", new BigDecimal("18000"), coldDrinks, 30, 7, 60);
+            createProduct("Milkshake", "Vanilla milkshake", new BigDecimal("35000"), coldDrinks, 25, 6, 50);
+        }        log.info("Products created");
     }
 
-    private void createProduct(String name, String description, BigDecimal price, Category category) {
+    // Create product with specific stock parameters
+    private void createProduct(String name, String description, BigDecimal price, Category category, 
+                              int stockQuantity, int minStock, int maxStock) {
         Product product = new Product();
         product.setName(name);
         product.setDescription(description);
         product.setPrice(price);
         product.setCategory(category);
         product.setAvailable(true);
+        product.setStockQuantity(stockQuantity);
+        product.setMinStockLevel(minStock);
+        product.setMaxStockLevel(maxStock);
         productRepository.save(product);
     }
 }

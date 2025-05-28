@@ -16,6 +16,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.config.Customizer;
 
 /**
  * Konfigurasi Spring Security untuk Coffee Shop application.
@@ -55,10 +56,9 @@ public class SecurityConfig {
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 
                 // All other requests require authentication
-                .anyRequest().authenticated()
-            )
+                .anyRequest().authenticated()            )
             .authenticationProvider(authenticationProvider())
-            .httpBasic(httpBasic -> {});
+            .httpBasic(Customizer.withDefaults());
 
         return http.build();
     }
@@ -69,12 +69,9 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-    }
-
-    /**
+    }    /**
      * Authentication provider.
      */
-    @SuppressWarnings("deprecation")
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();

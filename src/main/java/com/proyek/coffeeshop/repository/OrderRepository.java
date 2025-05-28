@@ -92,5 +92,14 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
      * @return Page Order diurutkan berdasarkan tanggal terbaru
      */
     @Query("SELECT o FROM Order o ORDER BY o.orderDate DESC")
-    Page<Order> findAllOrderByDateDesc(Pageable pageable);
+    Page<Order> findAllOrderByDateDesc(Pageable pageable);    /**
+     * Mencari order berdasarkan kasir ID dan range tanggal.
+     *
+     * @param kasirId ID kasir yang memproses order
+     * @param startDate tanggal mulai
+     * @param endDate tanggal akhir
+     * @return List Order yang diproses oleh kasir dalam range tanggal tertentu
+     */
+    @Query("SELECT o FROM Order o WHERE o.processedByKasir.id = :kasirId AND o.orderDate BETWEEN :startDate AND :endDate ORDER BY o.orderDate DESC")
+    List<Order> findByProcessedByKasirIdAndOrderDateBetween(@Param("kasirId") Long kasirId, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 }

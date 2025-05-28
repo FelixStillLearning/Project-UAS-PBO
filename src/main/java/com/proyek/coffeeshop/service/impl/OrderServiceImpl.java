@@ -242,15 +242,11 @@ public class OrderServiceImpl implements OrderService {
 
             if (!product.isAvailable()) { // FIX: Changed from getAvailable() to isAvailable()
                 throw new BadRequestException("Produk " + product.getName() + " sedang tidak tersedia.");
-            }
-
-            OrderDetail orderDetail = new OrderDetail();
+            }            OrderDetail orderDetail = new OrderDetail();
             orderDetail.setOrder(savedOrder);
             orderDetail.setProduct(product);
             orderDetail.setQuantity(itemRequest.getQuantity());
             orderDetail.setUnitPrice(product.getPrice());
-
-            OrderDetail savedOrderDetail = orderDetailRepository.save(orderDetail);
 
             List<OrderDetailCustomization> customizations = new ArrayList<>();
             BigDecimal customizationTotalForThisItem = BigDecimal.ZERO;
@@ -261,23 +257,33 @@ public class OrderServiceImpl implements OrderService {
                             .orElseThrow(() -> new ResourceNotFoundException("Kustomisasi tidak ditemukan dengan ID: " + customizationId));
 
                     OrderDetailCustomization orderDetailCustomization = new OrderDetailCustomization();
-                    orderDetailCustomization.setOrderDetail(savedOrderDetail);
+                    orderDetailCustomization.setOrderDetail(orderDetail);
                     orderDetailCustomization.setCustomization(customization);
                     orderDetailCustomization.setCustomizationNameSnapshot(customization.getName());
                     orderDetailCustomization.setPriceAdjustmentSnapshot(customization.getPriceAdjustment());
 
-                    customizations.add(orderDetailCustomizationRepository.save(orderDetailCustomization));
+                    customizations.add(orderDetailCustomization);
                     customizationTotalForThisItem = customizationTotalForThisItem.add(customization.getPriceAdjustment());
                 }
             }
-            savedOrderDetail.setCustomizations(customizations);
+            
+            orderDetail.setCustomizations(customizations);
 
             BigDecimal basePrice = product.getPrice().multiply(BigDecimal.valueOf(itemRequest.getQuantity()));
             BigDecimal totalCustomizationPriceForThisItem = customizationTotalForThisItem.multiply(BigDecimal.valueOf(itemRequest.getQuantity()));
             BigDecimal subtotal = basePrice.add(totalCustomizationPriceForThisItem);
-            savedOrderDetail.setSubtotalPrice(subtotal);
+            orderDetail.setSubtotalPrice(subtotal);
 
-            orderDetails.add(orderDetailRepository.save(savedOrderDetail));
+            // Save the order detail only once with all data set
+            OrderDetail savedOrderDetail = orderDetailRepository.save(orderDetail);
+            
+            // Save customizations after OrderDetail is saved (needed for foreign key)
+            for (OrderDetailCustomization customization : customizations) {
+                customization.setOrderDetail(savedOrderDetail);
+                orderDetailCustomizationRepository.save(customization);
+            }
+
+            orderDetails.add(savedOrderDetail);
             totalAmount = totalAmount.add(subtotal);
         }
 
